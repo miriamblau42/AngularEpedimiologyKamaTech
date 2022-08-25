@@ -7,6 +7,7 @@ import { catchError, map, tap } from 'rxjs/operators';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
+import { MainService } from './main.service';
 
 @Component({
   selector: 'app-main',
@@ -25,7 +26,7 @@ export class MainComponent implements OnInit {
   @ViewChild('paginator') paginator!: MatPaginator;
   @ViewChild('empTbSort') empTbSort = new MatSort();
 
-  constructor(private http: HttpClient) { 
+  constructor(private _locationsService: MainService) { 
     this.dataSource = new MatTableDataSource();
     this.addLocationForm = new FormGroup({
       fromDate :new FormControl(),
@@ -59,12 +60,9 @@ export class MainComponent implements OnInit {
   displayeTable(): void {
     console.log(this.locations);
   }
-  getLocationFromServer(): Observable<PLocation[]> {
-    this.locationsUrl = `https://localhost:44371/api/Patient/GetLocations/${this.PatientId}`;
-    return this.http.get<PLocation[]>(this.locationsUrl);
-  }
+
    getAllLocations(): void{
-     this.getLocationFromServer().subscribe(locs => {
+     this._locationsService.getAll(this.PatientId).subscribe(locs => {
       this.locations = locs;
       this.dataSource.data=locs;
       this.dataSource.sort = this.empTbSort;
@@ -97,7 +95,7 @@ export class MainComponent implements OnInit {
       adress: this.addLocationForm.value.adress,
       patientId:this.PatientId,
     }
-    return this.http.post(`https://localhost:44371/api/Location`,newLoc);
+    return this._locationsService.Post(newLoc);
   }
   AddLocation(event:any):void{
   
@@ -107,7 +105,7 @@ export class MainComponent implements OnInit {
   }
   //delete...
 deleteLocation(id:number):void{
-this.http.delete(`https://localhost:44371/api/Location/${id}`).subscribe(res=>
+this._locationsService.delete(id).subscribe(res=>
   this.getAllLocations(),err=> console.log(err) 
 );
 
